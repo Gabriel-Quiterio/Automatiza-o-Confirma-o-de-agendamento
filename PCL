@@ -20,7 +20,7 @@ from io import BytesIO
 informacao = input("Quais são as notas?")
 
 driver = webdriver.Chrome()
-driver.get("https://fornecedor.lasa.com.br/portal-fornecedor/")
+driver.get("")
 
 campo_usuario = driver.find_element(By.ID, "j_username")
 campo_senha = driver.find_element(By.ID, "j_password")
