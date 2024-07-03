@@ -1,0 +1,141 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from datetime import date, timedelta
+import datetime
+import os
+import time
+import glob
+import pyautogui
+import numpy as np
+import io
+from PIL import Image
+from io import BytesIO
+
+
+informacao = input("Quais são as notas?")
+
+driver = webdriver.Chrome()
+driver.get("https://fornecedor.lasa.com.br/portal-fornecedor/")
+
+campo_usuario = driver.find_element(By.ID, "j_username")
+campo_senha = driver.find_element(By.ID, "j_password")
+
+campo_usuario.send_keys(" ")
+campo_senha.send_keys(" ")
+
+Entrar_links = driver.find_element(By.ID, "submit")
+Entrar_links.click()
+
+
+Abastecimento_links = driver.find_element(By.LINK_TEXT, "Abastecimento")
+Abastecimento_links.click()
+
+wait = WebDriverWait(driver, 60)
+Pedido_link = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, "Pedido/Nota Fiscal")))
+Pedido_link.click()
+
+
+time.sleep(2)
+
+
+notas = informacao.split(';')
+
+for nota in notas:
+        #time.sleep(6)
+        campo_Codes = driver.find_element(By.ID, "filter.invoiceCodes")
+        campo_Codes.clear()
+        campo_Codes.send_keys(nota)
+        
+        Pesquisar_links = driver.find_element(By.ID, "btnSearchOrderInvoice")
+        Pesquisar_links.click()
+        
+        
+        time.sleep(5)
+        
+        wait = WebDriverWait(driver, 60)
+        
+        time.sleep(20)
+        
+        elemento_xpath = driver.find_element(By.XPATH, '//*[@id="result-pagination"]/div[1]/table/tbody/tr[1]/td[8]/div')
+        actions = ActionChains(driver)
+        actions.move_to_element(elemento_xpath).perform()
+        
+        wait = WebDriverWait(driver, 60)
+        elemento_clicavel_xpath = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="result-pagination"]/div[1]/table/tbody/tr[1]/td[8]/div/ul/li/a')))
+        elemento_clicavel_xpath.click()
+
+        botao_agendar = wait.until(EC.presence_of_element_located((By.XPATH, "//a[contains(@onclick, 'agendar')]")))
+
+
+        botao_agendar.click()
+
+        wait = WebDriverWait(driver, 60)
+
+        botao_sim = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "btn2.confirm.gray")))
+        botao_sim.click()
+        
+        time.sleep(3)
+        
+
+        botao_ok = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class='btn2 gray'][contains(text(), 'ok')]")))
+        botao_ok.click()
+        
+        time.sleep(3)
+
+        campo_Codes = driver.find_element(By.ID, "filter.invoiceCodes")
+        campo_Codes.clear()
+        campo_Codes.send_keys(nota)
+
+        Pesquisar_links = driver.find_element(By.ID, "btnSearchOrderInvoice")
+        Pesquisar_links.click()
+
+        wait = WebDriverWait(driver, 60)
+
+        time.sleep(6)
+
+        wawit = WebDriverWait(driver, 60)
+
+        imagem_botaos = wawit.until(EC.presence_of_element_located((By.CLASS_NAME, "actions-icon")))
+        imagem_botaos.click()
+
+        wait = WebDriverWait(driver, 60)
+        popup_opcoess = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "popup-action")))
+
+        link_confirmar_agenda = popup_opcoess.find_element(By.PARTIAL_LINK_TEXT, "Propor Nova Agenda")
+        link_confirmar_agenda.click()
+
+        time.sleep(4)
+
+        driver.execute_script("document.getElementById('ui-datepicker-div').style.display = 'none';")
+        time.sleep(2)
+
+        largura_janela = driver.execute_script("return window.innerWidth")
+        altura_janela = driver.execute_script("return window.innerHeight")
+
+        x_centro = largura_janela // 2
+        y_centro = altura_janela // 2
+
+        actions = ActionChains(driver)
+
+        actions.move_by_offset(x_centro, y_centro)
+        actions.click()
+
+        
+        wait = WebDriverWait(driver, 60)
+        popup_content = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.ui-dialog-content")))
+        time.sleep(4)
+        tabela = popup_content.find_element(By.CSS_SELECTOR, "table.table.tbl1")
+
+
+        screenshot = tabela.screenshot_as_png
+        imagem_pillow = Image.open(BytesIO(screenshot))
+
+        caminho_salvar = rf"C:\Users\quiterg\OneDrive - Hasbro Inc\Desktop\Hasbro\AGENDAS DIVERSOS\AGENDAS LASAS\Print lasa\{nota}.png"
+        imagem_pillow.save(caminho_salvar)
+        botao_fechar = driver.find_element(By.CSS_SELECTOR, "button.ui-dialog-titlebar-close")
+        botao_fechar.click()
